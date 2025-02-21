@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>DeepSeek API Chat (Free Version)</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2rem;
+      }
+      label {
+        display: block;
+        margin-top: 1rem;
+      }
+      input,
+      button {
+        padding: 0.5rem;
+        font-size: 1rem;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 1rem;
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>DeepSeek API Chat (Free Version)</h1>
+
+    <label for="apikey">API Key:</label>
+    <input type="text" id="apikey" placeholder="Enter your API Key" />
+
+    <label for="question">Question:</label>
+    <input type="text" id="question" placeholder="Ask your question here" />
+
+    <button id="askButton">Ask DeepSeek</button>
+
+    <h2>Response:</h2>
+    <pre id="responseArea"></pre>
+
+    <script>
+      document
+        .getElementById("askButton")
+        .addEventListener("click", function () {
+          const apiKey = document.getElementById("apikey").value.trim();
+          const question = document.getElementById("question").value.trim();
+          const responseArea = document.getElementById("responseArea");
+
+          if (!apiKey || !question) {
+            responseArea.textContent =
+              "Please enter both an API key and a question.";
+            return;
+          }
+
+          responseArea.textContent = "Loading...";
+
+          // Use the free model by specifying the free variant
+          const payload = {
+            model: "deepseek/deepseek-chat:free",
+            messages: [{ role: "user", content: question }],
+            stream: false,
+          };
+
+          fetch("https://api.deepseek.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + apiKey,
+            },
+            body: JSON.stringify(payload),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(
+                  "Network response was not ok. Status: " + response.status
+                );
+              }
+              return response.json();
+            })
+            .then((data) => {
+              // Extract the AI's answer from the response
+              const answer =
+                data.choices &&
+                data.choices[0] &&
+                data.choices[0].message &&
+                data.choices[0].message.content;
+              responseArea.textContent = answer || "No answer received.";
+            })
+            .catch((error) => {
+              responseArea.textContent = "Error: " + error.message;
+            });
+        });
+    </script>
+  </body>
+</html>
