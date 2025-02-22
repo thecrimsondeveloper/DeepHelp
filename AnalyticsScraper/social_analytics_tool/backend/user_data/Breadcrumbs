@@ -1,0 +1,32 @@
+0:00:04 TextSelectionChanged
+0:00:04 TextSelectionChanged
+0:00:04 TextSelectionChanged
+0:00:05 TextSelectionChanged
+0:00:05 TextSelectionChanged
+0:00:05 TextSelectionChanged
+0:00:05 TextSelectionChanged
+0:00:05 TextSelectionChanged
+0:00:05 TextSelectionChanged
+0:00:05 TextSelectionChanged
+0:00:05 TextSelectionChanged
+0:00:05 Widget Closed: PopupViewViews
+0:00:06 TextSelectionChanged
+0:00:06 TextSelectionChanged
+0:00:06 Widget Closed: PopupViewViews
+0:00:07 TextSelectionChanged
+0:00:07 TextSelectionChanged
+0:00:07 TextSelectionChanged
+0:00:07 TextSelectionChanged
+0:00:08 TextSelectionChanged
+0:00:08 TextSelectionChanged
+0:00:08 TextSelectionChanged
+0:00:08 TextSelectionChanged
+0:00:08 TextSelectionChanged
+0:00:08 TextSelectionChanged
+0:00:08 TextSelectionChanged
+0:00:08 Widget Closed: PopupViewViews
+0:00:09 Tab1 StartNav8 #renderer-user #link
+0:00:09 Tab1 FinishNav8
+0:00:09 Autofill_OnWillSubmitForm
+0:00:12 Widget Closed: StatusBubble
+0:02:23 Browser1 Close Tab1 at 0
