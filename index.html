@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusAI Web Validator</title>
+  <style>
+    :root {
+      --primary-color: #2a5d8f;
+      --secondary-color: #f5f5f5;
+      --border-color: #ddd;
+      --error-color: #c0392b;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--secondary-color);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--primary-color);
+      color: #fff;
+      padding: 1rem;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    header p {
+      margin: 0.5rem 0 0;
+      font-size: 0.9rem;
+    }
+    #container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    #left-panel {
+      width: 320px;
+      max-width: 100%;
+      padding: 1rem;
+      overflow-y: auto;
+      background: #fff;
+      border-right: 1px solid var(--border-color);
+    }
+    #right-panel {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    section {
+      margin-bottom: 1.5rem;
+    }
+    section h2 {
+      margin-top: 0;
+      font-size: 1.1rem;
+      color: var(--primary-color);
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0.8rem;
+      font-size: 0.9rem;
+    }
+    label input,
+    label textarea,
+    label select {
+      margin-top: 0.3rem;
+      padding: 0.4rem;
+      font-size: 0.9rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+    textarea {
+      resize: vertical;
+    }
+    .buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    button {
+      padding: 0.5rem 0.8rem;
+      font-size: 0.9rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: var(--primary-color);
+      color: #fff;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    #masked-key {
+      font-size: 0.8rem;
+      color: #555;
+      margin-bottom: 0.8rem;
+    }
+    #image-options,
+    #text-options {
+      margin-top: 0.5rem;
+    }
+    #custom-size-fields {
+      display: inline-flex;
+      gap: 0.2rem;
+      margin-left: 0.3rem;
+    }
+    #custom-size-fields input {
+      width: 60px;
+    }
+    #results {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+    .result-item {
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 0.5rem;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .result-item input[type="checkbox"] {
+      align-self: flex-start;
+    }
+    .thumb {
+      width: 100%;
+      height: 128px;
+      background: #fafafa;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .thumb img {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+    }
+    .meta {
+      font-size: 0.8rem;
+      color: #666;
+    }
+    #status-bar {
+      padding: 0.5rem 1rem;
+      background: #fff;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.9rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    #error-details pre {
+      white-space: pre-wrap;
+      color: var(--error-color);
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    #note {
+      font-size: 0.8rem;
+      color: #777;
+      margin-top: 0.5rem;
+    }
+    a#open-docs {
+      display: inline-block;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    a#open-docs:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 768px) {
+      #container {
+        flex-direction: column;
+      }
+      #left-panel {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NexusAI Web Validator</h1>
+    <p>This is a client-side validator for Google’s Gemini API. Usage is subject to your API key’s terms and quotas.</p>
+  </header>
+  <main id="container">
+    <div id="left-panel">
+      <section id="api-section">
+        <h2>API Settings</h2>
+        <label>
+          Mode
+          <select id="mode">
+            <option value="image">Image</option>
+            <option value="text">Text</option>
+          </select>
+        </label>
+        <label>
+          Model
+          <div style="display:flex; gap:0.3rem;">
+            <input type="text" id="model" placeholder="Model ID" style="flex:1;" />
+            <button type="button" id="set-default-model" title="Use default model for selected mode">Defaults</button>
+          </div>
+        </label>
+        <label>
+          API Key
+          <input type="password" id="api-key" placeholder="Enter API key" autocomplete="off" />
+        </label>
+        <div id="masked-key"></div>
+        <label>
+          Persist key (localStorage)
+          <input type="checkbox" id="persist-key" />
+        </label>
+        <label>
+          Transport
+          <select id="transport">
+            <option value="header">Header</option>
+            <option value="query">Query parameter</option>
+          </select>
+        </label>
+      </section>
+      <section id="generation-section">
+        <h2>Generation</h2>
+        <label>
+          Prompt
+          <textarea id="prompt" rows="4"></textarea>
+        </label>
+        <div id="image-options">
+          <label>
+            Size
+            <select id="size-preset">
+              <option value="256x256">256 × 256</option>
+              <option value="512x512" selected>512 × 512</option>
+              <option value="1024x1024">1024 × 1024</option>
+              <option value="custom">Custom</option>
+            </select>
+            <span id="custom-size-fields" style="display:none;">
+              <input type="number" id="custom-width" min="64" placeholder="Width" />
+              ×
+              <input type="number" id="custom-height" min="64" placeholder="Height" />
+            </span>
+          </label>
+          <label>
+            Candidates
+            <input type="number" id="candidate-count" min="1" max="4" value="1" />
+          </label>
+          <label>
+            Seed (optional)
+            <input type="number" id="seed" />
+          </label>
+          <label>
+            File Prefix
+            <input type="text" id="prefix" placeholder="Prefix" />
+          </label>
+        </div>
+        <div id="text-options" style="display:none;">
+          <label>
+            File Prefix
+            <input type="text" id="prefix-text" placeholder="Prefix" />
+          </label>
+        </div>
+        <label>
+          Verbose
+          <input type="checkbox" id="verbose" />
+        </label>
+        <div class="buttons">
+          <button type="button" id="generate">Generate</button>
+          <button type="button" id="cancel" disabled>Cancel</button>
+        </div>
+      </section>
+      <section id="actions-section">
+        <h2>Results Actions</h2>
+        <div class="buttons">
+          <button type="button" id="save-selected">Save Selected</button>
+          <button type="button" id="save-all">Save All</button>
+          <button type="button" id="clear-previews">Clear Previews</button>
+        </div>
+        <a href="https://ai.google.dev/gemini-api/docs/image-generation" id="open-docs" target="_blank">Open Docs</a>
+        <p id="note">“Create Sprites” is a Unity import feature and is not applicable on web.</p>
+      </section>
+    </div>
+    <div id="right-panel">
+      <h2>Results</h2>
+      <div id="results"></div>
+    </div>
+  </main>
+  <footer id="status-bar">
+    <span id="status">Idle</span>
+    <span id="timer"></span>
+    <details id="error-details" style="margin-left:auto;">
+      <summary>Error Details</summary>
+      <pre id="error-text"></pre>
+    </details>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
