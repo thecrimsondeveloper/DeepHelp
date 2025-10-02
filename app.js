@@ -148,25 +148,22 @@ function showError(message, details) {
   errorDetails.style.display = "block";
 }
 
-function buildImageRequest(
-  promptText,
-  width,
-  height,
-  candidateCount,
-  seed,
-  safetyLevel
-) {
-  const body = {
-    prompt: { text: promptText },
-    imageSize: { width: parseInt(width, 10), height: parseInt(height, 10) },
-    candidateCount: parseInt(candidateCount, 10) || 1,
-    safetyFilterLevel: safetyLevel || NxConstants.defaultSafetyFilterLevel,
+function buildImageRequest(promptText, width, height, candidateCount, seed) {
+  // Note: Gemini generateContent REST does not accept explicit width/height or top-level
+  // prompt/imageSize fields. Image size isn't directly controllable via params.
+  // If you want to encourage a size, include it in the prompt text.
+  const req = {
+    contents: [{ parts: [{ text: promptText }] }],
+    generationConfig: {
+      responseModalities: ["IMAGE"],
+      candidateCount: parseInt(candidateCount, 10) || 1,
+    },
   };
   if (seed) {
     const parsed = parseInt(seed, 10);
-    if (!isNaN(parsed)) body.seed = parsed;
+    if (!isNaN(parsed)) req.generationConfig.seed = parsed;
   }
-  return body;
+  return req;
 }
 
 function buildTextRequest(promptText) {
@@ -503,15 +500,9 @@ async function generateHandler() {
     }
     const candidateCount = candidateCountInput.value || "1";
     const seed = seedInput.value;
-    body = buildImageRequest(
-      prompt,
-      width,
-      height,
-      candidateCount,
-      seed,
-      NxConstants.defaultSafetyFilterLevel
-    );
+    body = buildImageRequest(prompt, width, height, candidateCount, seed);
   } else {
+    // Ensure text mode requests are standard generateContent
     body = buildTextRequest(prompt);
   }
   try {
