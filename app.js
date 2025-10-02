@@ -187,26 +187,43 @@ async function callApiWithRetries(url, options) {
       () => controller.abort(),
       NxConstants.defaultTimeout
     );
-    // --- LOGGING: request details ---
+    // --- LOGGING: request details (verbose only) ---
     try {
-      console.log("[API Request] URL:", url);
-      // Mask API key in headers if present
-      const logHeaders = { ...options.headers };
-      if (logHeaders[NxConstants.headerKeyName]) {
-        logHeaders[NxConstants.headerKeyName] = maskKey(
-          logHeaders[NxConstants.headerKeyName]
-        );
-      }
-      console.log("[API Request] Headers:", logHeaders);
-      if (options.body) {
-        try {
-          const parsedBody = JSON.parse(options.body);
-          console.log(
-            "[API Request] Body:",
-            JSON.stringify(parsedBody, null, 2)
+      const verbose = document.getElementById("verbose")?.checked;
+      if (verbose) {
+        // Mask API key in URL if present as query
+        const maskedUrl = (() => {
+          try {
+            const u = new URL(url);
+            if (u.searchParams.has(NxConstants.queryKeyName)) {
+              const val = u.searchParams.get(NxConstants.queryKeyName);
+              if (val)
+                u.searchParams.set(NxConstants.queryKeyName, maskKey(val));
+            }
+            return u.toString();
+          } catch (_) {
+            return url;
+          }
+        })();
+        console.log("[API Request] URL:", maskedUrl);
+        // Mask API key in headers if present
+        const logHeaders = { ...options.headers };
+        if (logHeaders[NxConstants.headerKeyName]) {
+          logHeaders[NxConstants.headerKeyName] = maskKey(
+            logHeaders[NxConstants.headerKeyName]
           );
-        } catch (e) {
-          console.log("[API Request] Body (raw):", options.body);
+        }
+        console.log("[API Request] Headers:", logHeaders);
+        if (options.body) {
+          try {
+            const parsedBody = JSON.parse(options.body);
+            console.log(
+              "[API Request] Body:",
+              JSON.stringify(parsedBody, null, 2)
+            );
+          } catch (e) {
+            console.log("[API Request] Body (raw):", options.body);
+          }
         }
       }
       const response = await fetch(url, {
@@ -216,8 +233,10 @@ async function callApiWithRetries(url, options) {
       clearTimeout(timeoutId);
       // Log response status and body
       const responseText = await response.clone().text();
-      console.log("[API Response] Status:", response.status);
-      console.log("[API Response] Body:", responseText);
+      if (verbose) {
+        console.log("[API Response] Status:", response.status);
+        console.log("[API Response] Body:", responseText);
+      }
       if (!response.ok) {
         let errorMsg = `HTTP ${response.status}`;
         let details = responseText.slice(0, 2000);
